@@ -142,6 +142,90 @@ export async function groupCurrentWindowTabs(activeTab) {
   }
 }
 
+let pendingOperation = Promise.resolve();
+
+/**
+ * Serializes tab-grouping operations within the current service worker turn so
+ * simultaneous tab events do not race and create duplicate groups.
+ * @param {() => Promise<void>} task
+ * @returns {Promise<void>}
+ */
+function runSerialized(task) {
+  const next = (async () => {
+    try {
+      await pendingOperation;
+    } catch {
+      // Previous operation error was already handled.
+    }
+    await task();
+  })();
+  pendingOperation = next;
+  return next;
+}
+
+/**
+ * Groups a single newly created or updated tab according to stored rules.
+ * @param {chrome.tabs.Tab} tab
+ * @returns {Promise<void>}
+ */
+export async function groupSingleTab(tab) {
+  if (!tab || tab.id == null || tab.pinned || tab.windowId == null || !tab.url) {
+    return;
+  }
+
+  await runSerialized(async () => {
+    const { rules, groupUnmatchedByDomain, autoGroupTabs } = await loadSettings();
+    if (!autoGroupTabs) {
+      return;
+    }
+
+    const plans = planTabGroups([tab], { rules, groupUnmatchedByDomain });
+    if (plans.length === 0) {
+      return;
+    }
+
+    const plan = plans[0];
+
+    try {
+      const existingGroups = await chrome.tabGroups.query({
+        windowId: tab.windowId,
+      });
+      const existing = existingGroups.find((g) => g.title === plan.title);
+
+      if (existing) {
+        if (tab.groupId !== existing.id) {
+          await chrome.tabs.group({
+            groupId: existing.id,
+            tabIds: [tab.id],
+          });
+        }
+
+        if (existing.title !== plan.title || existing.color !== plan.color) {
+          await chrome.tabGroups.update(existing.id, {
+            title: plan.title,
+            color: plan.color,
+          });
+        }
+      } else {
+        const groupId = await chrome.tabs.group({
+          tabIds: [tab.id],
+          createProperties: { windowId: tab.windowId },
+        });
+
+        await chrome.tabGroups.update(groupId, {
+          title: plan.title,
+          color: plan.color,
+        });
+      }
+    } catch (err) {
+      console.warn(
+        `RuleTabGrouper: Failed to auto-group tab ${tab.id} into "${plan.title}":`,
+        err
+      );
+    }
+  });
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   try {
     const stored = await chrome.storage.sync.get([...STORAGE_KEYS]);
@@ -155,11 +239,35 @@ chrome.runtime.onInstalled.addListener(async () => {
       updates.groupUnmatchedByDomain = true;
     }
 
+    if (stored.autoGroupTabs === undefined) {
+      updates.autoGroupTabs = true;
+    }
+
     if (Object.keys(updates).length > 0) {
       await chrome.storage.sync.set(updates);
     }
   } catch (err) {
     console.error('RuleTabGrouper: Failed to initialize default settings:', err);
+  }
+});
+
+chrome.tabs.onCreated.addListener(async (tab) => {
+  try {
+    await groupSingleTab(tab);
+  } catch (err) {
+    console.error('RuleTabGrouper: Error auto-grouping created tab:', err);
+  }
+});
+
+chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
+  if (!changeInfo.url && !changeInfo.title && changeInfo.status !== 'complete') {
+    return;
+  }
+
+  try {
+    await groupSingleTab(tab);
+  } catch (err) {
+    console.error('RuleTabGrouper: Error auto-grouping updated tab:', err);
   }
 });
 

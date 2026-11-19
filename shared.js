@@ -15,7 +15,11 @@ export const VALID_COLORS = Object.freeze([
 
 export const DEFAULT_FALLBACK_COLOR = 'grey';
 
-export const STORAGE_KEYS = Object.freeze(['rules', 'groupUnmatchedByDomain']);
+export const STORAGE_KEYS = Object.freeze([
+  'rules',
+  'groupUnmatchedByDomain',
+  'autoGroupTabs',
+]);
 
 /**
  * Default grouping rules evaluated in priority order.
@@ -253,5 +257,7 @@ export async function loadSettings(storage = chrome.storage.sync) {
       typeof stored.groupUnmatchedByDomain === 'boolean'
         ? stored.groupUnmatchedByDomain
         : true,
+    autoGroupTabs:
+      typeof stored.autoGroupTabs === 'boolean' ? stored.autoGroupTabs : true,
   };
 }

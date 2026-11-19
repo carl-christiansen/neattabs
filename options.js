@@ -401,9 +401,14 @@ async function saveSettings(triggerEl) {
 
   const rules = collectRulesFromDOM();
   const groupUnmatchedByDomain = elements.fallbackToggle.checked;
+  const autoGroupTabs = elements.autoGroupToggle.checked;
 
   try {
-    await chrome.storage.sync.set({ rules, groupUnmatchedByDomain });
+    await chrome.storage.sync.set({
+      rules,
+      groupUnmatchedByDomain,
+      autoGroupTabs,
+    });
     const timestamp = new Date().toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
@@ -427,14 +432,17 @@ async function saveSettings(triggerEl) {
 async function performResetToDefaults(triggerEl) {
   const defaultRules = cloneDefaultRules();
   const groupUnmatchedByDomain = true;
+  const autoGroupTabs = true;
 
   try {
     await chrome.storage.sync.set({
       rules: defaultRules,
       groupUnmatchedByDomain,
+      autoGroupTabs,
     });
     renderRules(defaultRules);
     elements.fallbackToggle.checked = groupUnmatchedByDomain;
+    elements.autoGroupToggle.checked = autoGroupTabs;
     setSaveIndicator('Reset to defaults', 'saved');
     showToast('Reset to default rules and saved.', {
       variant: 'success',
@@ -454,6 +462,7 @@ async function performResetToDefaults(triggerEl) {
  */
 async function initOptionsPage() {
   elements.form = document.getElementById('settings-form');
+  elements.autoGroupToggle = document.getElementById('auto-group-toggle');
   elements.fallbackToggle = document.getElementById('fallback-toggle');
   elements.rulesList = document.getElementById('rules-list');
   elements.ruleCount = document.getElementById('rule-count');
@@ -470,6 +479,10 @@ async function initOptionsPage() {
   elements.statusToastText = document.getElementById('status-toast-text');
   elements.statusToastClose = document.getElementById('status-toast-close');
   elements.statusLive = document.getElementById('status-live');
+
+  elements.autoGroupToggle.addEventListener('change', () => {
+    markDirty();
+  });
 
   elements.fallbackToggle.addEventListener('change', () => {
     markDirty();
@@ -550,12 +563,14 @@ async function initOptionsPage() {
 
   try {
     const settings = await loadSettings();
+    elements.autoGroupToggle.checked = settings.autoGroupTabs;
     elements.fallbackToggle.checked = settings.groupUnmatchedByDomain;
     renderRules(settings.rules);
     setSaveIndicator('All changes saved', 'saved');
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     renderRules(cloneDefaultRules());
+    elements.autoGroupToggle.checked = true;
     elements.fallbackToggle.checked = true;
     showToast(`Could not load stored settings (${message}); showing defaults.`, {
       variant: 'error',

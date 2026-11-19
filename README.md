@@ -4,7 +4,8 @@ A lightweight, minimalist Manifest V3 Google Chrome extension that organizes and
 
 ## Features
 
-- **One-click grouping:** Click the RuleTabGrouper toolbar icon to group open tabs in the active window.
+- **Automatic grouping:** Newly created and navigated tabs are automatically sorted into matching groups (can be toggled in Options).
+- **One-click grouping:** Click the RuleTabGrouper toolbar icon anytime to re-group all open tabs in the active window.
 - **Sequential rule matching:** Rules are evaluated top to bottom (first matching rule wins).
 - **Case-insensitive regex:** Match against tab hostname (`new URL(tab.url).hostname`), page title, or either.
 - **Automatic domain fallback:** Unmatched tabs can optionally be grouped by base hostname (e.g., `google.com`) in `grey`.

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>RuleTabGrouper — Options</title>
+  <link rel="stylesheet" href="options.css">
+  <script type="module" src="options.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>RuleTabGrouper</h1>
+      <p class="subtitle">
+        Configure regex rules to organize open tabs in the current window when you click the extension toolbar icon.
+      </p>
+    </header>
+
+    <main>
+      <form id="settings-form" novalidate>
+        <section class="card fallback-card" aria-labelledby="fallback-heading">
+          <h2 id="fallback-heading" class="visually-hidden">Fallback Behavior</h2>
+          <label class="toggle-label" for="fallback-toggle">
+            <input type="checkbox" id="fallback-toggle">
+            <span class="toggle-copy">
+              <span class="toggle-title">Group unmatched tabs by domain (fallback)</span>
+              <span class="toggle-hint">
+                Tabs that do not match any rule below are grouped by base hostname in grey.
+              </span>
+            </span>
+          </label>
+        </section>
+
+        <section class="card rules-card" aria-labelledby="rules-heading">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 id="rules-heading">Matching Rules</h2>
+              <span id="rule-count" class="badge">0 rules</span>
+            </div>
+            <button type="button" id="add-rule-btn" class="btn btn-secondary">
+              + Add Rule
+            </button>
+          </div>
+
+          <p class="section-hint">
+            Rules are evaluated top to bottom (first match wins). Patterns use case-insensitive JavaScript regex; a rule matches if either Domain Regex or Title Regex matches.
+          </p>
+
+          <div class="rules-header" aria-hidden="true">
+            <span>Order</span>
+            <span>Group Name</span>
+            <span>Domain Regex</span>
+            <span>Title Regex</span>
+            <span>Color</span>
+            <span>Delete</span>
+          </div>
+
+          <div id="rules-list" class="rules-list"></div>
+
+          <p id="empty-state" class="empty-state" hidden>
+            No custom rules configured. Click "+ Add Rule" to create one, or rely on domain fallback grouping.
+          </p>
+        </section>
+
+        <footer class="actions-bar">
+          <span id="save-indicator" class="save-indicator">All changes saved</span>
+          <div class="actions-buttons">
+            <button type="button" id="reset-btn" class="btn btn-ghost">
+              Reset to Defaults
+            </button>
+            <button type="submit" id="save-btn" class="btn btn-primary">
+              Save Settings
+            </button>
+          </div>
+        </footer>
+      </form>
+    </main>
+  </div>
+
+  <template id="rule-row-template">
+    <article class="rule-row">
+      <div class="order-controls">
+        <button
+          type="button"
+          class="btn btn-icon move-up-btn"
+          aria-label="Move rule up"
+          title="Move up"
+        >&#8593;</button>
+        <button
+          type="button"
+          class="btn btn-icon move-down-btn"
+          aria-label="Move rule down"
+          title="Move down"
+        >&#8595;</button>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-label="name">Group Name</label>
+        <input
+          type="text"
+          required
+          placeholder="e.g. Work / Tracker"
+          data-field="name"
+        >
+        <div class="error-msg" data-error-msg="name"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-label="domainPattern">Domain Regex</label>
+        <input
+          type="text"
+          class="mono"
+          spellcheck="false"
+          placeholder="e.g. github\.com|gitlab\.com"
+          data-field="domainPattern"
+        >
+        <div class="error-msg" data-error-msg="domainPattern"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-label="titlePattern">Title Regex</label>
+        <input
+          type="text"
+          class="mono"
+          spellcheck="false"
+          placeholder="e.g. swagger|openapi"
+          data-field="titlePattern"
+        >
+        <div class="error-msg" data-error-msg="titlePattern"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-label="color">Color</label>
+        <div class="color-field">
+          <span class="color-dot" data-color="grey" aria-hidden="true"></span>
+          <select data-field="color"></select>
+        </div>
+      </div>
+
+      <div class="row-actions">
+        <button
+          type="button"
+          class="btn btn-danger-ghost delete-rule-btn"
+          aria-label="Delete rule"
+          title="Delete rule"
+        >&times;</button>
+      </div>
+    </article>
+  </template>
+
+  <dialog id="reset-dialog" class="confirm-dialog" aria-labelledby="reset-dialog-title">
+    <h2 id="reset-dialog-title">Reset to default rules?</h2>
+    <p class="dialog-body">
+      This will replace your current rules with the built-in defaults and re-enable domain fallback grouping.
+    </p>
+    <div class="dialog-actions">
+      <button type="button" id="reset-cancel-btn" class="btn btn-ghost">Cancel</button>
+      <button type="button" id="reset-confirm-btn" class="btn btn-danger">Reset to Defaults</button>
+    </div>
+  </dialog>
+
+  <div class="toast-region" role="region" aria-label="Notifications">
+    <div id="status-toast" class="toast" popover="manual" data-variant="success">
+      <span id="status-toast-text" class="toast-text"></span>
+      <button
+        type="button"
+        id="status-toast-close"
+        class="toast-close"
+        popovertarget="status-toast"
+        popovertargetaction="hide"
+        aria-label="Dismiss notification"
+      >&times;</button>
+    </div>
+  </div>
+
+  <p class="visually-hidden">Status announcements</p>
+  <div id="status-live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

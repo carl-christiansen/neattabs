@@ -1,0 +1,41 @@
+name: Build and Publish Extension ZIP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Package extension ZIP
+        run: |
+          zip -r rule-tab-grouper.zip \
+            manifest.json \
+            shared.js \
+            background.js \
+            options.html \
+            options.css \
+            options.js \
+            README.md
+
+      - name: Update latest release with ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest rule-tab-grouper.zip --clobber
+            gh release edit latest --notes "Latest build from commit \`${GITHUB_SHA::7}\`."
+          else
+            gh release create latest rule-tab-grouper.zip \
+              --title "Latest Build" \
+              --notes "Latest build from commit \`${GITHUB_SHA::7}\`."
+          fi

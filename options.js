@@ -174,12 +174,14 @@ function createRuleRow(rule = {}) {
   const domainInput = row.querySelector('[data-field="domainPattern"]');
   const titleInput = row.querySelector('[data-field="titlePattern"]');
   const colorSelect = row.querySelector('[data-field="color"]');
+  const hostTitleCheckbox = row.querySelector('[data-field="prependHostToTitle"]');
   const colorDot = row.querySelector('.color-dot');
 
   const nameLabel = row.querySelector('[data-label="name"]');
   const domainLabel = row.querySelector('[data-label="domainPattern"]');
   const titleLabel = row.querySelector('[data-label="titlePattern"]');
   const colorLabel = row.querySelector('[data-label="color"]');
+  const hostTitleLabel = row.querySelector('[data-label="prependHostToTitle"]');
 
   const nameErrorEl = row.querySelector('[data-error-msg="name"]');
   const domainErrorEl = row.querySelector('[data-error-msg="domainPattern"]');
@@ -206,6 +208,9 @@ function createRuleRow(rule = {}) {
   colorSelect.id = `rule-color-${suffix}`;
   colorLabel.htmlFor = colorSelect.id;
 
+  hostTitleCheckbox.id = `rule-host-title-${suffix}`;
+  hostTitleLabel.htmlFor = hostTitleCheckbox.id;
+
   for (const color of VALID_COLORS) {
     const option = document.createElement('option');
     option.value = color;
@@ -219,9 +224,14 @@ function createRuleRow(rule = {}) {
   titleInput.value = typeof rule.titlePattern === 'string' ? rule.titlePattern : '';
   colorSelect.value = initialColor;
   colorDot.dataset.color = initialColor;
+  hostTitleCheckbox.checked = Boolean(rule.prependHostToTitle);
 
   colorSelect.addEventListener('change', () => {
     colorDot.dataset.color = sanitizeColor(colorSelect.value);
+    markDirty();
+  });
+
+  hostTitleCheckbox.addEventListener('change', () => {
     markDirty();
   });
 
@@ -305,6 +315,7 @@ function collectRulesFromDOM() {
     color: sanitizeColor(row.querySelector('[data-field="color"]').value),
     domainPattern: row.querySelector('[data-field="domainPattern"]').value.trim(),
     titlePattern: row.querySelector('[data-field="titlePattern"]').value.trim(),
+    prependHostToTitle: row.querySelector('[data-field="prependHostToTitle"]').checked,
   }));
 }
 
@@ -494,6 +505,7 @@ async function initOptionsPage() {
       color: 'blue',
       domainPattern: '',
       titlePattern: '',
+      prependHostToTitle: false,
     });
     elements.rulesList.append(newRow);
     syncRulesMeta();

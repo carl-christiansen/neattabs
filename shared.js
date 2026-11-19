@@ -30,24 +30,28 @@ export const DEFAULT_RULES = Object.freeze([
     color: 'blue',
     domainPattern: 'atlassian\\.net|jira|linear\\.app',
     titlePattern: '',
+    prependHostToTitle: false,
   }),
   Object.freeze({
     name: 'Git Repos',
     color: 'green',
     domainPattern: 'github\\.com|gitlab\\.com',
     titlePattern: '',
+    prependHostToTitle: false,
   }),
   Object.freeze({
     name: 'Swagger / APIs',
     color: 'yellow',
     domainPattern: 'swagger',
     titlePattern: 'swagger|openapi',
+    prependHostToTitle: false,
   }),
   Object.freeze({
     name: 'Local Dev',
     color: 'purple',
     domainPattern: 'localhost|127\\.0\\.0\\.1',
     titlePattern: '',
+    prependHostToTitle: false,
   }),
 ]);
 
@@ -117,6 +121,31 @@ export function extractWebHostname(urlString) {
 }
 
 /**
+ * Extracts host (including non-default port) from http/https URLs, stripping leading "www.".
+ * @param {unknown} urlString
+ * @returns {string | null}
+ */
+export function extractWebHost(urlString) {
+  if (!urlString || typeof urlString !== 'string') {
+    return null;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(urlString);
+  } catch {
+    return null;
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return null;
+  }
+
+  const host = parsed.host.toLowerCase().replace(/^www\./i, '');
+  return host || null;
+}
+
+/**
  * Strips leading "www." from a hostname for cleaner fallback group titles.
  * @param {string} hostname
  * @returns {string}
@@ -154,6 +183,7 @@ export function compileRules(rules) {
       color: sanitizeColor(rule.color),
       domainRegex: domainResult.regex,
       titleRegex: titleResult.regex,
+      prependHostToTitle: Boolean(rule.prependHostToTitle),
     });
   }
 
@@ -210,37 +240,55 @@ export function planTabGroups(tabs, settings = {}) {
     let title;
     let color;
     let isRuleMatch;
+    let prependHostToTitle;
 
     if (matchedRule) {
       title = matchedRule.name;
       color = matchedRule.color;
       isRuleMatch = true;
+      prependHostToTitle = matchedRule.prependHostToTitle;
     } else if (groupUnmatchedByDomain) {
       title = getFallbackDomain(hostname);
       color = DEFAULT_FALLBACK_COLOR;
       isRuleMatch = false;
+      prependHostToTitle = false;
     } else {
       continue;
     }
 
     let entry = planned.get(title);
     if (!entry) {
-      entry = { title, color, tabIds: [], fromRule: isRuleMatch };
+      entry = {
+        title,
+        color,
+        tabIds: [],
+        fromRule: isRuleMatch,
+        prependHostToTitle,
+      };
       planned.set(title, entry);
-    } else if (!entry.fromRule && isRuleMatch) {
-      // Upgrade fallback group color if an explicit rule uses the same group name.
-      entry.color = color;
-      entry.fromRule = true;
+    } else {
+      if (!entry.fromRule && isRuleMatch) {
+        // Upgrade fallback group color if an explicit rule uses the same group name.
+        entry.color = color;
+        entry.fromRule = true;
+      }
+      if (prependHostToTitle) {
+        entry.prependHostToTitle = true;
+      }
     }
 
     entry.tabIds.push(tab.id);
   }
 
-  return Array.from(planned.values(), ({ title, color, tabIds }) => ({
-    title,
-    color,
-    tabIds,
-  }));
+  return Array.from(
+    planned.values(),
+    ({ title, color, tabIds, prependHostToTitle }) => ({
+      title,
+      color,
+      tabIds,
+      prependHostToTitle,
+    })
+  );
 }
 
 /**

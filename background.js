@@ -1,6 +1,7 @@
 import {
   STORAGE_KEYS,
   cloneDefaultRules,
+  extractWebHost,
   loadSettings,
   planTabGroups,
 } from './shared.js';
@@ -49,6 +50,39 @@ async function releaseGroupingLock() {
 }
 
 /**
+ * Prepends "[host] " to a tab's document.title if not already present.
+ * @param {number} tabId
+ * @param {string | undefined} url
+ * @returns {Promise<void>}
+ */
+async function prependHostToTabTitle(tabId, url) {
+  if (!chrome.scripting?.executeScript) {
+    return;
+  }
+
+  const host = extractWebHost(url);
+  if (!host) {
+    return;
+  }
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      args: [host],
+      func: (hostLabel) => {
+        const prefix = `[${hostLabel}] `;
+        if (!document.title.startsWith(prefix)) {
+          document.title = document.title ? `${prefix}${document.title}` : `[${hostLabel}]`;
+        }
+      },
+    });
+  } catch (err) {
+    // Restricted pages (e.g., Chrome Web Store) or closing tabs cannot be scripted.
+    console.warn(`RuleTabGrouper: Could not update title for tab ${tabId}:`, err);
+  }
+}
+
+/**
  * Groups open tabs in the active window according to stored rules and fallback preferences.
  * @param {chrome.tabs.Tab} [activeTab]
  * @returns {Promise<void>}
@@ -86,6 +120,7 @@ export async function groupCurrentWindowTabs(activeTab) {
     }
 
     const tabGroupById = new Map(tabs.map((tab) => [tab.id, tab.groupId]));
+    const tabById = new Map(tabs.map((tab) => [tab.id, tab]));
 
     for (const plan of plans) {
       if (plan.tabIds.length === 0) {
@@ -129,6 +164,13 @@ export async function groupCurrentWindowTabs(activeTab) {
             title: plan.title,
             color: plan.color,
           });
+        }
+
+        if (plan.prependHostToTitle) {
+          for (const tabId of plan.tabIds) {
+            const tab = tabById.get(tabId);
+            await prependHostToTabTitle(tabId, tab?.url);
+          }
         }
       } catch (err) {
         console.warn(
@@ -216,6 +258,10 @@ export async function groupSingleTab(tab) {
           title: plan.title,
           color: plan.color,
         });
+      }
+
+      if (plan.prependHostToTitle) {
+        await prependHostToTabTitle(tab.id, tab.url);
       }
     } catch (err) {
       console.warn(

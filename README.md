@@ -16,12 +16,7 @@ A lightweight, minimalist Manifest V3 Google Chrome extension that organizes and
 
 ## Default Rules
 
-| Rule Name | Color | Domain Regex | Title Regex |
-| :--- | :--- | :--- | :--- |
-| Work / Tracker | `blue` | `atlassian\.net\|jira\|linear\.app` | — |
-| Git Repos | `green` | `github\.com\|gitlab\.com` | — |
-| Swagger / APIs | `yellow` | `swagger` | `swagger\|openapi` |
-| Local Dev | `purple` | `localhost\|127\.0\.0\.1` | — |
+NeatTabs starts with no pre-configured rules (`DEFAULT_RULES = []`) and **Group unmatched tabs by domain** enabled, so you can add only the rules you want in Options.
 
 Supported Chrome tab group colors: `grey`, `blue`, `red`, `yellow`, `green`, `pink`, `purple`, `cyan`, `orange`.
 

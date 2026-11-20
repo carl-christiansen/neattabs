@@ -28,44 +28,7 @@ export const STORAGE_KEYS = Object.freeze([
 /**
  * Default grouping rules evaluated in priority order.
  */
-export const DEFAULT_RULES = Object.freeze([
-  Object.freeze({
-    name: 'Work / Tracker',
-    color: 'blue',
-    domainPattern: 'atlassian\\.net|jira|linear\\.app',
-    titlePattern: '',
-    prependHostToTitle: false,
-    hostTitlePosition: 'before',
-    hostTitleStripPattern: '',
-  }),
-  Object.freeze({
-    name: 'Git Repos',
-    color: 'green',
-    domainPattern: 'github\\.com|gitlab\\.com',
-    titlePattern: '',
-    prependHostToTitle: false,
-    hostTitlePosition: 'before',
-    hostTitleStripPattern: '',
-  }),
-  Object.freeze({
-    name: 'Swagger / APIs',
-    color: 'yellow',
-    domainPattern: 'swagger',
-    titlePattern: 'swagger|openapi',
-    prependHostToTitle: false,
-    hostTitlePosition: 'before',
-    hostTitleStripPattern: '',
-  }),
-  Object.freeze({
-    name: 'Local Dev',
-    color: 'purple',
-    domainPattern: 'localhost|127\\.0\\.0\\.1',
-    titlePattern: '',
-    prependHostToTitle: false,
-    hostTitlePosition: 'before',
-    hostTitleStripPattern: '',
-  }),
-]);
+export const DEFAULT_RULES = Object.freeze([]);
 
 /**
  * Returns mutable shallow copies of the default rules.

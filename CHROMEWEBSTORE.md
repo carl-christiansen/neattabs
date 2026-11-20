@@ -28,8 +28,8 @@ FEATURES
 
 HOW TO USE
 1. Pin the extension to your Chrome toolbar.
-2. Click the toolbar icon to organize all tabs in the current window using the built-in starter rules.
-3. Right-click the toolbar icon and select Options to customize rule names, colors, matching patterns, priority order, host-in-title labels, and auto-grouping.
+2. Click the toolbar icon anytime to group open tabs in the current window by domain, or right-click and select Options to add your own custom rules.
+3. Customize rule names, colors, matching patterns, priority order, host-in-title labels, and auto-grouping in Options.
 
 PRIVACY
 Your browsing stays private. Tab addresses and titles are processed locally in your browser solely to match your rules and organize your tabs. No browsing data is ever sent to external servers, sold, or shared with third parties. Your custom rules and preferences are synced only through your own Chrome profile.

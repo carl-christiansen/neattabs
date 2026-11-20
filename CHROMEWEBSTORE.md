@@ -41,7 +41,7 @@ PERMISSIONS
 • Read and change data on sites you visit — Required only when you enable the optional "Host in Title" setting on a rule, so the extension can display a [host] label in the tab title of matching pages.
 
 SUPPORT
-Questions, feedback, or bug reports? Open an issue at https://github.com/carl-christiansen/rule-tab-grouper/issues or email support@macando.se.
+Questions, feedback, or bug reports? Open an issue at https://github.com/carl-christiansen/neattabs/issues or email support@macando.se.
 
 Version 1.0.0 — Initial release with automatic and one-click rule-based tab grouping, domain fallback, and optional host-in-title labels.
 
@@ -111,7 +111,7 @@ English
 ## Privacy Policy
 
 **Privacy Policy URL** [REQUIRED]
-`https://carl-christiansen.github.io/rule-tab-grouper/privacy.html`
+`https://carl-christiansen.github.io/neattabs/privacy.html`
 
 > Setup step: Enable GitHub Pages in the repository (**Settings → Pages → Source: Deploy from a branch → Branch: `main`, Folder: `/docs`**), then verify the URL returns HTTP 200 before submitting to Chrome Web Store.
 
@@ -129,10 +129,10 @@ Macando AB
 support@macando.se
 
 **Support URL / Email** [RECOMMENDED]
-https://github.com/carl-christiansen/rule-tab-grouper/issues
+https://github.com/carl-christiansen/neattabs/issues
 
 **Homepage URL** [RECOMMENDED]
-https://github.com/carl-christiansen/rule-tab-grouper
+https://github.com/carl-christiansen/neattabs
 
 ## Version History
 

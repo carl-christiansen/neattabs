@@ -18,24 +18,25 @@ jobs:
 
       - name: Package extension ZIP
         run: |
-          zip -r rule-tab-grouper.zip \
+          zip -r neattabs.zip \
             manifest.json \
             shared.js \
             background.js \
             options.html \
             options.css \
             options.js \
-            README.md
+            icons
 
       - name: Update latest release with ZIP
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if gh release view latest >/dev/null 2>&1; then
-            gh release upload latest rule-tab-grouper.zip --clobber
+            gh release upload latest neattabs.zip --clobber
+            gh release delete-asset latest rule-tab-grouper.zip --yes || true
             gh release edit latest --notes "Latest build from commit \`${GITHUB_SHA::7}\`."
           else
-            gh release create latest rule-tab-grouper.zip \
+            gh release create latest neattabs.zip \
               --title "Latest Build" \
               --notes "Latest build from commit \`${GITHUB_SHA::7}\`."
           fi

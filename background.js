@@ -27,7 +27,7 @@ async function acquireGroupingLock() {
     await chrome.storage.session.set({ [LOCK_KEY]: now });
     return true;
   } catch (err) {
-    console.warn('RuleTabGrouper: Failed to acquire grouping lock:', err);
+    console.warn('NeatTabs: Failed to acquire grouping lock:', err);
     return true;
   }
 }
@@ -44,7 +44,7 @@ async function releaseGroupingLock() {
   try {
     await chrome.storage.session.remove(LOCK_KEY);
   } catch (err) {
-    console.warn('RuleTabGrouper: Failed to release grouping lock:', err);
+    console.warn('NeatTabs: Failed to release grouping lock:', err);
   }
 }
 
@@ -122,7 +122,7 @@ async function applyHostToTabTitle(
     });
   } catch (err) {
     // Restricted pages (e.g., Chrome Web Store) or closing tabs cannot be scripted.
-    console.warn(`RuleTabGrouper: Could not update title for tab ${tabId}:`, err);
+    console.warn(`NeatTabs: Could not update title for tab ${tabId}:`, err);
   }
 }
 
@@ -219,7 +219,7 @@ export async function groupCurrentWindowTabs(activeTab) {
         }
       } catch (err) {
         console.warn(
-          `RuleTabGrouper: Failed to apply group "${plan.title}":`,
+          `NeatTabs: Failed to apply group "${plan.title}":`,
           err
         );
       }
@@ -315,7 +315,7 @@ export async function groupSingleTab(tab) {
       }
     } catch (err) {
       console.warn(
-        `RuleTabGrouper: Failed to auto-group tab ${tab.id} into "${plan.title}":`,
+        `NeatTabs: Failed to auto-group tab ${tab.id} into "${plan.title}":`,
         err
       );
     }
@@ -343,7 +343,7 @@ chrome.runtime.onInstalled.addListener(async () => {
       await chrome.storage.sync.set(updates);
     }
   } catch (err) {
-    console.error('RuleTabGrouper: Failed to initialize default settings:', err);
+    console.error('NeatTabs: Failed to initialize default settings:', err);
   }
 });
 
@@ -351,7 +351,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   try {
     await groupSingleTab(tab);
   } catch (err) {
-    console.error('RuleTabGrouper: Error auto-grouping created tab:', err);
+    console.error('NeatTabs: Error auto-grouping created tab:', err);
   }
 });
 
@@ -363,7 +363,7 @@ chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
   try {
     await groupSingleTab(tab);
   } catch (err) {
-    console.error('RuleTabGrouper: Error auto-grouping updated tab:', err);
+    console.error('NeatTabs: Error auto-grouping updated tab:', err);
   }
 });
 
@@ -371,6 +371,6 @@ chrome.action.onClicked.addListener(async (activeTab) => {
   try {
     await groupCurrentWindowTabs(activeTab);
   } catch (err) {
-    console.error('RuleTabGrouper: Error grouping tabs:', err);
+    console.error('NeatTabs: Error grouping tabs:', err);
   }
 });

@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>RuleTabGrouper — Options</title>
+  <title>NeatTabs — Options</title>
   <link rel="stylesheet" href="options.css">
   <script type="module" src="options.js"></script>
 </head>
 <body>
   <div class="container">
     <header class="page-header">
-      <h1>RuleTabGrouper</h1>
+      <h1>NeatTabs</h1>
       <p class="subtitle">
         Configure regex rules to organize open tabs in the current window when you click the extension toolbar icon.
       </p>
@@ -125,6 +125,8 @@
           type="text"
           class="mono"
           spellcheck="false"
+          autocorrect="off"
+          autocapitalize="none"
           placeholder="e.g. github\.com|gitlab\.com"
           data-field="domainPattern"
         >
@@ -137,6 +139,8 @@
           type="text"
           class="mono"
           spellcheck="false"
+          autocorrect="off"
+          autocapitalize="none"
           placeholder="e.g. swagger|openapi"
           data-field="titlePattern"
         >
@@ -165,6 +169,41 @@
           aria-label="Delete rule"
           title="Delete rule"
         >&times;</button>
+      </div>
+
+      <div class="host-title-options" data-section="hostTitleOptions" hidden>
+        <fieldset class="host-position-group">
+          <legend class="host-option-label">Host position</legend>
+          <div class="radio-group">
+            <label class="radio-inline" data-label="hostTitlePositionBefore">
+              <input type="radio" value="before" data-field="hostTitlePosition">
+              <span>Before title <code class="example-tag">[host] Title</code></span>
+            </label>
+            <label class="radio-inline" data-label="hostTitlePositionAfter">
+              <input type="radio" value="after" data-field="hostTitlePosition">
+              <span>After title <code class="example-tag">Title [host]</code></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field host-strip-field">
+          <label class="host-option-label" data-label="hostTitleStripPattern">
+            Filter out from host (regex)
+          </label>
+          <span class="field-hint" data-hint="hostTitleStripPattern">
+            Removes matching parts of the host before adding it to the title.
+          </span>
+          <input
+            type="text"
+            class="mono"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="e.g. \.company\.com$"
+            data-field="hostTitleStripPattern"
+          >
+          <div class="error-msg" data-error-msg="hostTitleStripPattern"></div>
+        </div>
       </div>
     </article>
   </template>

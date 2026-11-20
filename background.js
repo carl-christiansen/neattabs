@@ -1,7 +1,6 @@
 import {
   STORAGE_KEYS,
   cloneDefaultRules,
-  extractWebHost,
   loadSettings,
   planTabGroups,
 } from './shared.js';
@@ -50,29 +49,74 @@ async function releaseGroupingLock() {
 }
 
 /**
- * Prepends "[host] " to a tab's document.title if not already present.
+ * Applies a "[host]" tag before or after a tab's document.title, replacing any prior tag.
  * @param {number} tabId
- * @param {string | undefined} url
+ * @param {string} hostLabel
+ * @param {'before' | 'after'} [position]
+ * @param {string | null} [rawHost]
  * @returns {Promise<void>}
  */
-async function prependHostToTabTitle(tabId, url) {
-  if (!chrome.scripting?.executeScript) {
-    return;
-  }
-
-  const host = extractWebHost(url);
-  if (!host) {
+async function applyHostToTabTitle(
+  tabId,
+  hostLabel,
+  position = 'before',
+  rawHost = null
+) {
+  if (!chrome.scripting?.executeScript || !hostLabel) {
     return;
   }
 
   try {
     await chrome.scripting.executeScript({
       target: { tabId },
-      args: [host],
-      func: (hostLabel) => {
-        const prefix = `[${hostLabel}] `;
-        if (!document.title.startsWith(prefix)) {
-          document.title = document.title ? `${prefix}${document.title}` : `[${hostLabel}]`;
+      args: [hostLabel, position, rawHost],
+      func: (label, pos, unfilteredHost) => {
+        const tag = `[${label}]`;
+        const prevTag =
+          typeof globalThis.__ruleTabGrouperAppliedHostTag === 'string'
+            ? globalThis.__ruleTabGrouperAppliedHostTag
+            : '';
+        const rawTag = unfilteredHost ? `[${unfilteredHost}]` : '';
+        const candidates = Array.from(
+          new Set(
+            [tag, rawTag, prevTag].filter(
+              (t) => typeof t === 'string' && t.length > 0
+            )
+          )
+        ).sort((a, b) => b.length - a.length);
+
+        let baseTitle = typeof document.title === 'string' ? document.title : '';
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const candidate of candidates) {
+            if (baseTitle === candidate) {
+              baseTitle = '';
+              changed = true;
+              break;
+            }
+            if (baseTitle.startsWith(`${candidate} `)) {
+              baseTitle = baseTitle.slice(candidate.length + 1);
+              changed = true;
+              break;
+            }
+            if (baseTitle.endsWith(` ${candidate}`)) {
+              baseTitle = baseTitle.slice(0, -(candidate.length + 1));
+              changed = true;
+              break;
+            }
+          }
+        }
+
+        const nextTitle = !baseTitle
+          ? tag
+          : pos === 'after'
+            ? `${baseTitle} ${tag}`
+            : `${tag} ${baseTitle}`;
+
+        globalThis.__ruleTabGrouperAppliedHostTag = tag;
+        if (document.title !== nextTitle) {
+          document.title = nextTitle;
         }
       },
     });
@@ -120,7 +164,6 @@ export async function groupCurrentWindowTabs(activeTab) {
     }
 
     const tabGroupById = new Map(tabs.map((tab) => [tab.id, tab.groupId]));
-    const tabById = new Map(tabs.map((tab) => [tab.id, tab]));
 
     for (const plan of plans) {
       if (plan.tabIds.length === 0) {
@@ -166,11 +209,13 @@ export async function groupCurrentWindowTabs(activeTab) {
           });
         }
 
-        if (plan.prependHostToTitle) {
-          for (const tabId of plan.tabIds) {
-            const tab = tabById.get(tabId);
-            await prependHostToTabTitle(tabId, tab?.url);
-          }
+        for (const update of plan.hostTitleUpdates) {
+          await applyHostToTabTitle(
+            update.tabId,
+            update.hostLabel,
+            update.position,
+            update.rawHost
+          );
         }
       } catch (err) {
         console.warn(
@@ -260,8 +305,13 @@ export async function groupSingleTab(tab) {
         });
       }
 
-      if (plan.prependHostToTitle) {
-        await prependHostToTabTitle(tab.id, tab.url);
+      for (const update of plan.hostTitleUpdates) {
+        await applyHostToTabTitle(
+          update.tabId,
+          update.hostLabel,
+          update.position,
+          update.rawHost
+        );
       }
     } catch (err) {
       console.warn(

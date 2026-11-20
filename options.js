@@ -3,6 +3,7 @@ import {
   cloneDefaultRules,
   loadSettings,
   sanitizeColor,
+  sanitizeHostTitlePosition,
   validateRegexPattern,
 } from './shared.js';
 
@@ -103,10 +104,13 @@ function validateRuleRow(row, { showErrors = false } = {}) {
   const nameInput = row.querySelector('[data-field="name"]');
   const domainInput = row.querySelector('[data-field="domainPattern"]');
   const titleInput = row.querySelector('[data-field="titlePattern"]');
+  const hostTitleCheckbox = row.querySelector('[data-field="prependHostToTitle"]');
+  const hostStripInput = row.querySelector('[data-field="hostTitleStripPattern"]');
 
   const nameErrorEl = row.querySelector('[data-error-msg="name"]');
   const domainErrorEl = row.querySelector('[data-error-msg="domainPattern"]');
   const titleErrorEl = row.querySelector('[data-error-msg="titlePattern"]');
+  const hostStripErrorEl = row.querySelector('[data-error-msg="hostTitleStripPattern"]');
 
   const nameValue = nameInput.value.trim();
   const domainResult = validateRegexPattern(domainInput.value);
@@ -133,16 +137,33 @@ function validateRuleRow(row, { showErrors = false } = {}) {
     domainMsg = 'Error: Enter a Domain Regex or a Title Regex.';
   }
 
+  let hostStripMsg = '';
+  if (hostTitleCheckbox.checked) {
+    const hostStripResult = validateRegexPattern(hostStripInput.value);
+    if (!hostStripResult.valid) {
+      hostStripMsg = `Error: Invalid regex — ${hostStripResult.error}`;
+    }
+  }
+
   const showNameError = showErrors || interactedFields.has(nameInput);
   const showDomainError =
     showErrors ||
     interactedFields.has(domainInput) ||
     interactedFields.has(titleInput);
   const showTitleError = showErrors || interactedFields.has(titleInput);
+  const showHostStripError =
+    hostTitleCheckbox.checked &&
+    (showErrors || interactedFields.has(hostStripInput));
 
   applyFieldValidation(nameInput, nameErrorEl, nameMsg, showNameError);
   applyFieldValidation(domainInput, domainErrorEl, domainMsg, showDomainError);
   applyFieldValidation(titleInput, titleErrorEl, titleMsg, showTitleError);
+  applyFieldValidation(
+    hostStripInput,
+    hostStripErrorEl,
+    hostStripMsg,
+    showHostStripError
+  );
 
   let firstInvalid = null;
   if (nameMsg) {
@@ -151,17 +172,19 @@ function validateRuleRow(row, { showErrors = false } = {}) {
     firstInvalid = domainInput;
   } else if (titleMsg) {
     firstInvalid = titleInput;
+  } else if (hostStripMsg) {
+    firstInvalid = hostStripInput;
   }
 
   return {
-    valid: !nameMsg && !domainMsg && !titleMsg,
+    valid: !nameMsg && !domainMsg && !titleMsg && !hostStripMsg,
     firstInvalid,
   };
 }
 
 /**
  * Creates a DOM row for a rule object and attaches event handlers.
- * @param {{ name?: string, color?: string, domainPattern?: string, titlePattern?: string }} [rule]
+ * @param {{ name?: string, color?: string, domainPattern?: string, titlePattern?: string, prependHostToTitle?: boolean, hostTitlePosition?: string, hostTitleStripPattern?: string }} [rule]
  * @returns {HTMLElement}
  */
 function createRuleRow(rule = {}) {
@@ -175,6 +198,14 @@ function createRuleRow(rule = {}) {
   const titleInput = row.querySelector('[data-field="titlePattern"]');
   const colorSelect = row.querySelector('[data-field="color"]');
   const hostTitleCheckbox = row.querySelector('[data-field="prependHostToTitle"]');
+  const hostOptionsSection = row.querySelector('[data-section="hostTitleOptions"]');
+  const hostPosBeforeRadio = row.querySelector(
+    '[data-field="hostTitlePosition"][value="before"]'
+  );
+  const hostPosAfterRadio = row.querySelector(
+    '[data-field="hostTitlePosition"][value="after"]'
+  );
+  const hostStripInput = row.querySelector('[data-field="hostTitleStripPattern"]');
   const colorDot = row.querySelector('.color-dot');
 
   const nameLabel = row.querySelector('[data-label="name"]');
@@ -182,10 +213,21 @@ function createRuleRow(rule = {}) {
   const titleLabel = row.querySelector('[data-label="titlePattern"]');
   const colorLabel = row.querySelector('[data-label="color"]');
   const hostTitleLabel = row.querySelector('[data-label="prependHostToTitle"]');
+  const hostPosBeforeLabel = row.querySelector(
+    '[data-label="hostTitlePositionBefore"]'
+  );
+  const hostPosAfterLabel = row.querySelector(
+    '[data-label="hostTitlePositionAfter"]'
+  );
+  const hostStripLabel = row.querySelector('[data-label="hostTitleStripPattern"]');
+  const hostStripHintEl = row.querySelector('[data-hint="hostTitleStripPattern"]');
 
   const nameErrorEl = row.querySelector('[data-error-msg="name"]');
   const domainErrorEl = row.querySelector('[data-error-msg="domainPattern"]');
   const titleErrorEl = row.querySelector('[data-error-msg="titlePattern"]');
+  const hostStripErrorEl = row.querySelector(
+    '[data-error-msg="hostTitleStripPattern"]'
+  );
 
   nameInput.id = `rule-name-${suffix}`;
   nameLabel.htmlFor = nameInput.id;
@@ -210,6 +252,25 @@ function createRuleRow(rule = {}) {
 
   hostTitleCheckbox.id = `rule-host-title-${suffix}`;
   hostTitleLabel.htmlFor = hostTitleCheckbox.id;
+  hostOptionsSection.id = `rule-host-options-${suffix}`;
+  hostTitleCheckbox.setAttribute('aria-controls', hostOptionsSection.id);
+
+  const radioGroupName = `rule-host-position-${suffix}`;
+  hostPosBeforeRadio.id = `rule-host-pos-before-${suffix}`;
+  hostPosBeforeRadio.name = radioGroupName;
+  hostPosBeforeLabel.htmlFor = hostPosBeforeRadio.id;
+
+  hostPosAfterRadio.id = `rule-host-pos-after-${suffix}`;
+  hostPosAfterRadio.name = radioGroupName;
+  hostPosAfterLabel.htmlFor = hostPosAfterRadio.id;
+
+  hostStripInput.id = `rule-host-strip-${suffix}`;
+  hostStripLabel.htmlFor = hostStripInput.id;
+  hostStripHintEl.id = `rule-host-strip-hint-${suffix}`;
+  hostStripErrorEl.id = `rule-host-strip-error-${suffix}`;
+  hostStripInput.dataset.error = hostStripErrorEl.id;
+  hostStripInput.setAttribute('aria-describedby', hostStripHintEl.id);
+  hostStripInput.setAttribute('aria-invalid', 'false');
 
   for (const color of VALID_COLORS) {
     const option = document.createElement('option');
@@ -219,12 +280,23 @@ function createRuleRow(rule = {}) {
   }
 
   const initialColor = sanitizeColor(rule.color);
+  const initialEnabled = Boolean(rule.prependHostToTitle);
+  const initialPosition = sanitizeHostTitlePosition(rule.hostTitlePosition);
+
   nameInput.value = typeof rule.name === 'string' ? rule.name : '';
   domainInput.value = typeof rule.domainPattern === 'string' ? rule.domainPattern : '';
   titleInput.value = typeof rule.titlePattern === 'string' ? rule.titlePattern : '';
   colorSelect.value = initialColor;
   colorDot.dataset.color = initialColor;
-  hostTitleCheckbox.checked = Boolean(rule.prependHostToTitle);
+
+  hostTitleCheckbox.checked = initialEnabled;
+  hostOptionsSection.hidden = !initialEnabled;
+  hostTitleCheckbox.setAttribute('aria-expanded', String(initialEnabled));
+
+  hostPosBeforeRadio.checked = initialPosition === 'before';
+  hostPosAfterRadio.checked = initialPosition === 'after';
+  hostStripInput.value =
+    typeof rule.hostTitleStripPattern === 'string' ? rule.hostTitleStripPattern : '';
 
   colorSelect.addEventListener('change', () => {
     colorDot.dataset.color = sanitizeColor(colorSelect.value);
@@ -232,10 +304,20 @@ function createRuleRow(rule = {}) {
   });
 
   hostTitleCheckbox.addEventListener('change', () => {
+    const enabled = hostTitleCheckbox.checked;
+    hostOptionsSection.hidden = !enabled;
+    hostTitleCheckbox.setAttribute('aria-expanded', String(enabled));
+    validateRuleRow(row);
     markDirty();
   });
 
-  for (const input of [nameInput, domainInput, titleInput]) {
+  for (const radio of [hostPosBeforeRadio, hostPosAfterRadio]) {
+    radio.addEventListener('change', () => {
+      markDirty();
+    });
+  }
+
+  for (const input of [nameInput, domainInput, titleInput, hostStripInput]) {
     input.addEventListener('input', () => {
       markDirty();
       validateRuleRow(row);
@@ -306,7 +388,7 @@ function renderRules(rules) {
 
 /**
  * Extracts rule objects from the current DOM rows.
- * @returns {Array<{name: string, color: string, domainPattern: string, titlePattern: string}>}
+ * @returns {Array<{name: string, color: string, domainPattern: string, titlePattern: string, prependHostToTitle: boolean, hostTitlePosition: 'before' | 'after', hostTitleStripPattern: string}>}
  */
 function collectRulesFromDOM() {
   const rows = elements.rulesList.querySelectorAll('.rule-row');
@@ -316,6 +398,12 @@ function collectRulesFromDOM() {
     domainPattern: row.querySelector('[data-field="domainPattern"]').value.trim(),
     titlePattern: row.querySelector('[data-field="titlePattern"]').value.trim(),
     prependHostToTitle: row.querySelector('[data-field="prependHostToTitle"]').checked,
+    hostTitlePosition: sanitizeHostTitlePosition(
+      row.querySelector('[data-field="hostTitlePosition"]:checked')?.value
+    ),
+    hostTitleStripPattern: row
+      .querySelector('[data-field="hostTitleStripPattern"]')
+      .value.trim(),
   }));
 }
 
@@ -506,6 +594,8 @@ async function initOptionsPage() {
       domainPattern: '',
       titlePattern: '',
       prependHostToTitle: false,
+      hostTitlePosition: 'before',
+      hostTitleStripPattern: '',
     });
     elements.rulesList.append(newRow);
     syncRulesMeta();

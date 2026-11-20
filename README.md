@@ -1,43 +1,53 @@
 # NeatTabs
 
-A lightweight, minimalist Manifest V3 Google Chrome extension that organizes and groups tabs in the current window using customizable domain and title regex rules, with automatic domain-based fallback grouping.
+A lightweight, minimalist Manifest V3 Chrome extension that organizes and groups tabs in the current window using customizable domain and title regex rules, with optional automatic domain-based fallback grouping.
 
 ## Features
 
-- **Automatic grouping:** Newly created and navigated tabs are automatically sorted into matching groups (can be toggled in Options).
-- **Optional host in tab titles:** Enable **Host in Title** on any rule to add `[host]` before or after matching tabs' titles, and optionally filter out a regex-matched part of the host (e.g., stripping `\.company\.com$` turns `orders-api.company.com` into `[orders-api] Swagger UI` or `Swagger UI [orders-api]`).
-- **One-click grouping:** Click the NeatTabs toolbar icon anytime to re-group all open tabs in the active window.
-- **Sequential rule matching:** Rules are evaluated top to bottom (first matching rule wins).
-- **Case-insensitive regex:** Match against tab hostname (`new URL(tab.url).hostname`), page title, or either.
-- **Automatic domain fallback:** Unmatched tabs can optionally be grouped by base hostname (e.g., `google.com`) in `grey`.
-- **Safe tab filtering:** Automatically skips pinned tabs, empty URLs, and browser/internal pages (`chrome://`, `chrome-extension://`, `about:blank`, etc.).
+- **Automatic grouping:** Newly created and navigated tabs are sorted into matching colored tab groups as you browse (toggleable in Options).
+- **One-click grouping:** Click the **NeatTabs** toolbar icon anytime to organize all open tabs in the current window.
+- **Custom regex rules:** Match tabs by hostname (`new URL(tab.url).hostname`), page title, or either, evaluated top to bottom (first match wins).
+- **Optional host in tab titles:** Enable **Host in Title** on any rule to prepend or append `[host]` to matching tab titles, with an optional regex filter to strip repeated suffixes (for example, turning `orders-api.company.com` into `[orders-api] Swagger UI`).
+- **Automatic domain fallback:** Optionally group unmatched tabs by their base hostname in `grey`.
+- **Safe tab filtering:** Skips pinned tabs, empty URLs, and internal browser pages (`chrome://`, `chrome-extension://`, `about:blank`, etc.).
 - **Synced settings:** Rules and preferences are stored in `chrome.storage.sync`.
 - **Adaptive theme:** Minimalist Options UI supporting light and dark system themes with zero external dependencies.
 
-## Default Rules
+## Supported Colors
 
-NeatTabs starts with no pre-configured rules (`DEFAULT_RULES = []`) and **Group unmatched tabs by domain** enabled, so you can add only the rules you want in Options.
+`grey`, `blue`, `red`, `yellow`, `green`, `pink`, `purple`, `cyan`, `orange`
 
-Supported Chrome tab group colors: `grey`, `blue`, `red`, `yellow`, `green`, `pink`, `purple`, `cyan`, `orange`.
+## Install from Source (Developer Mode)
 
-## How to Load Unpacked in Chrome (Developer Mode)
-
-1. Open Google Chrome and navigate to `chrome://extensions`.
-2. Toggle **Developer mode** on in the top-right corner.
-3. Click **Load unpacked** in the top-left toolbar.
-4. Select this directory (`/home/dev/tab-grouper` or your cloned folder containing `manifest.json`).
-5. Pin **NeatTabs** from the Extensions menu (puzzle-piece icon) for quick one-click access.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/carl-christiansen/neattabs.git
+   ```
+2. Open Google Chrome and go to `chrome://extensions`.
+3. Enable **Developer mode** in the top-right corner.
+4. Click **Load unpacked** and select the cloned `neattabs` folder.
+5. Pin **NeatTabs** from the Extensions menu (puzzle-piece icon) for one-click access.
 
 ## Usage
 
 - **Group tabs:** Click the **NeatTabs** icon in the Chrome toolbar to organize tabs in the current window.
-- **Configure rules:** Right-click the extension icon and choose **Options** (or open **Extension options** from `chrome://extensions`).
-- **Reorder priority:** Use the `↑` and `↓` buttons on any rule row to change rule evaluation order, then click **Save Settings**.
+- **Configure rules:** Right-click the extension icon and choose **Options** (or open **Extension options** from `chrome://extensions`). NeatTabs starts with no pre-configured rules and domain fallback enabled so you can add only the rules you want.
+- **Reorder priority:** Use the `↑` and `↓` buttons on any rule row to change evaluation order, then click **Save Settings**.
 
-## Files
+## Privacy
 
-- `manifest.json` — Manifest V3 configuration (`tabs`, `tabGroups`, `storage`).
-- `shared.js` — Shared defaults, regex validation, and tab-grouping planner.
-- `background.js` — MV3 service worker listening to `chrome.runtime.onInstalled` and `chrome.action.onClicked`.
+NeatTabs processes tab URLs and titles locally in your browser solely to match your rules and organize tabs. No browsing data is collected, logged, or sent to external servers. Custom rules and preferences are stored via `chrome.storage.sync`. See the full [Privacy Policy](https://carl-christiansen.github.io/neattabs/privacy.html).
+
+## Project Structure
+
+- `manifest.json` — Manifest V3 configuration.
+- `shared.js` — Defaults, regex validation, and tab-grouping planner.
+- `background.js` — MV3 service worker handling toolbar clicks and tab events.
 - `options.html`, `options.css`, `options.js` — Options page UI and settings persistence.
-- `README.md` — Documentation and unpacked installation guide.
+- `icons/` — Extension icons (`16×16`, `48×48`, `128×128`).
+- `docs/privacy.html` — Public privacy policy page.
+- `package-extension.py` — Builds a clean Chrome Web Store submission ZIP.
+
+## Support
+
+Found a bug or have a suggestion? Open an issue at [github.com/carl-christiansen/neattabs/issues](https://github.com/carl-christiansen/neattabs/issues) or email `support@macando.se`.

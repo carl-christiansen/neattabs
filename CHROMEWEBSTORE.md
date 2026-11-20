@@ -4,16 +4,13 @@
 
 ## Store Listing
 
-**Extension Name** [REQUIRED]
-<!-- Must match manifest.json "name". Max 75 characters. -->
+**Extension Name**
 NeatTabs
 
-**Short Description** [REQUIRED]
-<!-- Max 132 characters. Shown in search results and tiles. Be specific about function. -->
+**Short Description**
 Automatically organizes and groups tabs in the current window using customizable domain and title regex rules, with domain fallback.
 
-**Detailed Description** [REQUIRED]
-<!-- Max 16,000 characters. Plain text with line breaks — CWS strips markdown. -->
+**Detailed Description**
 Automatically organize and group your open tabs in the current window using custom domain and page-title rules, with optional automatic grouping by website domain.
 
 FEATURES
@@ -45,30 +42,23 @@ Questions, feedback, or bug reports? Open an issue at https://github.com/carl-ch
 
 Version 1.0.0 — Initial release with automatic and one-click rule-based tab grouping, domain fallback, and optional host-in-title labels.
 
-**Category** [REQUIRED]
+**Category**
 Productivity
 
-**Single Purpose** [REQUIRED]
+**Single Purpose**
 Automatically organizes and groups open browser tabs in the current window according to user-defined domain and title rules.
 
-**Primary Language** [REQUIRED]
+**Primary Language**
 English
 
 ## Graphics & Assets
 
 | Asset | Dimensions | Status | Filename |
 |-------|-----------|--------|----------|
-| Store Icon [REQUIRED] | 128×128 PNG | ✅ Ready | `icons/icon-128.png` |
-| Screenshot 1 [REQUIRED] | 1280×800 or 640×400 | ⬜ Not created | `store-assets/screenshot-1-grouped-tabs.png` |
-| Screenshot 2 [RECOMMENDED] | 1280×800 or 640×400 | ⬜ Not created | `store-assets/screenshot-2-options.png` |
-| Screenshot 3 [RECOMMENDED] | 1280×800 or 640×400 | ⬜ Not created | `store-assets/screenshot-3-host-in-title.png` |
-| Small Promo Tile [RECOMMENDED] | 440×280 | ⬜ Not created | `store-assets/promo-small-440x280.png` |
-| Marquee Promo Tile | 1400×560 | ⬜ Not created | |
-
-### Screenshot Notes
-- **Screenshot 1 (1280×800):** Chrome window showing multiple colored tab groups created by the extension (e.g., Work / Tracker, Git Repos, Swagger / APIs, Local Dev) with the extension icon visible in the toolbar.
-- **Screenshot 2 (1280×800):** The Options page (`options.html`) showing the rule editor (rule names, colors, domain/title regex patterns, priority arrows, and auto-group / domain-fallback toggles).
-- **Screenshot 3 (1280×800):** Close-up or full window demonstrating the optional "Host in Title" feature (e.g., `[orders-api] Swagger UI` in the tab strip alongside the matching rule setting).
+| Store Icon | 128×128 PNG | ✅ Ready | `icons/icon-128.png` |
+| Screenshot 1 (Options Light) | 1280×800 PNG | ✅ Ready | `store-assets/screenshot-1-options-light.png` |
+| Screenshot 2 (Options Dark) | 1280×800 PNG | ✅ Ready | `store-assets/screenshot-2-options-dark.png` |
+| Small Promo Tile | 440×280 PNG | ✅ Ready | `store-assets/promo-small-440x280.png` |
 
 ## Permissions Justification
 
@@ -87,9 +77,8 @@ English
 
 **Does the extension collect user data?** No (no personal data or browsing history is collected, transmitted to developer servers, or shared with third parties).
 
-> Note for Chrome Web Store Dashboard form:
-> - Tab URLs and titles are accessed **locally in the browser only** to evaluate user rules and group tabs — they are never logged, stored, or transmitted off-device.
-> - User-configured rules and extension preferences are stored in `chrome.storage.sync`, which syncs them across the user's own signed-in Chrome browsers via Google's Chrome Sync infrastructure. Disclose this transparently in the Privacy Policy (already covered in `docs/privacy.html`).
+- Tab URLs and titles are accessed **locally in the browser only** to evaluate user rules and group tabs — they are never logged, stored, or transmitted off-device.
+- User-configured rules and extension preferences are stored in `chrome.storage.sync`, which syncs them across the user's own signed-in Chrome browsers via Google's Chrome Sync infrastructure.
 
 | Data Type | Collected? | Transmitted Off-Device? | Purpose | Shared with Third Parties? |
 |-----------|-----------|------------------------|---------|---------------------------|
@@ -110,10 +99,8 @@ English
 
 ## Privacy Policy
 
-**Privacy Policy URL** [REQUIRED]
+**Privacy Policy URL**
 `https://carl-christiansen.github.io/neattabs/privacy.html`
-
-> Setup step: Enable GitHub Pages in the repository (**Settings → Pages → Source: Deploy from a branch → Branch: `main`, Folder: `/docs`**), then verify the URL returns HTTP 200 before submitting to Chrome Web Store.
 
 ## Distribution
 
@@ -122,16 +109,16 @@ English
 
 ## Developer Info
 
-**Publisher Name** [REQUIRED]
+**Publisher Name**
 Macando AB
 
-**Contact Email** [REQUIRED]
+**Contact Email**
 support@macando.se
 
-**Support URL / Email** [RECOMMENDED]
+**Support URL**
 https://github.com/carl-christiansen/neattabs/issues
 
-**Homepage URL** [RECOMMENDED]
+**Homepage URL**
 https://github.com/carl-christiansen/neattabs
 
 ## Version History
@@ -139,12 +126,3 @@ https://github.com/carl-christiansen/neattabs
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
 | 1.0.0 | 2026-11-20 | Initial release: rule-based automatic & one-click tab grouping, domain fallback, optional host-in-title labels, synced settings. | Draft |
-
-## Review Notes
-
-### Known Issues / Limitations
-- Broad `host_permissions` (`http://*/*`, `https://*/*`) + `scripting` are used exclusively for the optional "Host in Title" feature because users define arbitrary regex rules. Expect manual review (typically 1–5 business days).
-- Restricted browser pages (`chrome://`, `chrome-extension://`, Chrome Web Store) are safely skipped and cannot be scripted or grouped.
-
-### Rejection History
-<!-- None yet -->
